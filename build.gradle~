@@ -1,0 +1,98 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.github.rholder:gradle-one-jar:1.0.3'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'gradle-one-jar'
+apply plugin: 'application'
+apply plugin: 'maven'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+
+defaultTasks 'build', 'install'
+
+mainClassName = 'com.veasmkii.bino.com.veasmkii.bino.Main'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+allprojects {
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    group = 'com.veasmkii'
+    version = '1.0.0-SNAPSHOT'
+    description = 'Binoculars for Mongo'
+
+}
+
+dependencies {
+
+    compile 'com.fasterxml.jackson.core:jackson-annotations:2.6.1',
+            'com.fasterxml.jackson.core:jackson-core:2.6.1',
+            'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.6.1',
+            'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.6.1',
+            'org.mongodb:mongo-java-driver:3.0.4',
+            'com.google.guava:guava:18.0',
+            'org.apache.commons:commons-lang3:3.4',
+            'com.google.code.gson:gson:2.5'
+
+    compile(group: 'org.jongo', name: 'jongo', version: '1.2') {
+                exclude(module: 'jackson-core')
+                exclude(module: 'jackson-databind')
+                exclude(module: 'jackson-annotations')
+            }
+
+    testCompile 'org.mockito:mockito-core:2.0.2-beta',
+            'org.hamcrest:hamcrest-all:1.3',
+            'junit:junit:4.12',
+            'org.meanbean:meanbean:2.0.3',
+            'de.flapdoodle.embed:de.flapdoodle.embed.mongo:1.50.0'
+}
+
+task oneJar(type: OneJar) {
+    mainClass = mainClassName
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+task copyConf(type: Copy) {
+    def confDir = file("$buildDir/conf")
+    from 'conf'
+    into confDir
+    outputs.dir confDir
+}
+
+distributions {
+    main {
+        contents {
+            from(copyConf) {
+                into "conf"
+            }
+        }
+    }
+}
+
+artifacts {
+    oneJar
+    archives sourcesJar
+    archives javadocJar
+}
